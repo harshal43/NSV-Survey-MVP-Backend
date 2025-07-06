@@ -34,7 +34,7 @@ JOIN nearest_segment ns ON
   ds.end_chainage_m = ns.end_chainage_m
 WHERE l.project_id = $1`;
 
-const test = `WITH nearest_segment AS (
+const getDistressAndDistance = `WITH nearest_segment AS (
   SELECT 
     ds.start_chainage_m,
     ds.end_chainage_m,
@@ -77,4 +77,4 @@ JOIN nearest_segment ns
   AND ds.end_chainage_m = ns.end_chainage_m
 WHERE l.project_id = $1;
 `;
-export { getDistress };
+export { getDistress,getDistressAndDistance };
