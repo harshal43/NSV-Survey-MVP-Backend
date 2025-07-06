@@ -1,15 +1,9 @@
 import pool from "../config/dbconfig.js";
-import express from "express";
 import logger from "../utils/logger.js";
 import { ulid } from "ulid";
 import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
-import {
-  getLaneData,
-  getPiuList,
-  getProjectList,
-  getRoList,
-} from "../queries/masterDataQueries.js";
+
 
 dotenv.config();
 
