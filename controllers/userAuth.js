@@ -49,7 +49,7 @@ const signup = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: req.body,
+      data: req.body,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -57,7 +57,7 @@ const signup = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      data: { user_id: id },
     });
   } finally {
     client.release();
@@ -102,14 +102,14 @@ const login = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: result,
+      data: result,
     });
   } catch (error) {
     logger.error(error);
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();
@@ -150,7 +150,7 @@ const editUser = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "User Edit Successfully",
-      Data: req.body,
+      data: req.body,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -158,7 +158,7 @@ const editUser = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();

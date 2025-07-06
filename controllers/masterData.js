@@ -30,7 +30,7 @@ const roList = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: getList.rows,
+      data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -38,7 +38,7 @@ const roList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();
@@ -65,7 +65,7 @@ const PiuList = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: getList.rows,
+      data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -73,7 +73,7 @@ const PiuList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();
@@ -96,7 +96,7 @@ const ProjectList = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: getList.rows,
+      data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -104,7 +104,7 @@ const ProjectList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();
@@ -127,7 +127,7 @@ const laneData = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: getList.rows,
+      data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -135,7 +135,7 @@ const laneData = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();

@@ -34,13 +34,13 @@ const getDistressData = async (req, res) => {
       res.status(304).send({
         status: 304,
         msg: "no data found for this lat long",
-        Data: {},
+        data: {},
       });
     }
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: getList.rows,
+      data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -48,7 +48,7 @@ const getDistressData = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      data: req.body,
     });
   } finally {
     client.release();
