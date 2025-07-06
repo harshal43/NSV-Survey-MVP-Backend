@@ -52,11 +52,14 @@ const PiuList = async (req, res) => {
     logger.info("enter into roList");
     logger.info(content);
     const ro_id = req.query.ro_id;
+    if (ro_id == null) {
+      throw new Error("ro_id is mandatory");
+    }
     await authvalidation(req.headers, client);
 
     logger.info("user verified");
 
-    const getList = await client.query(getPiuList, { ro_id });
+    const getList = await client.query(getPiuList, [ro_id]);
 
     res.status(200).send({
       status: 200,
@@ -87,7 +90,7 @@ const ProjectList = async (req, res) => {
 
     logger.info("user verified");
 
-    const getList = await client.query(getProjectList, { piu_id });
+    const getList = await client.query(getProjectList, [piu_id]);
 
     res.status(200).send({
       status: 200,

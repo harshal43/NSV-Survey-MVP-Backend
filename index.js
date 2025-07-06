@@ -7,16 +7,17 @@ import nsvroute from "./routes/routensv.js";
 dotenv.config();
 
 const app = express();
-const port = parseInt(process.env.WMS_PORT) || 6000;
+const port = parseInt(process.env.WMS_PORT) || 6001;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const testing = async () => {
-  console.log("api called");
-};
-app.use(testing);
+// const testing = async () => {
+//   console.log("api called");
+//   return
+// };
+// app.use(testing);
 
 app.use("/nsv", nsvroute);
 
