@@ -1,53 +1,35 @@
 import pool from "../config/dbconfig.js";
 import express from "express";
 import logger from "../utils/logger.js";
-import bcrypt from "bcrypt";
-import * as queriesuserauth from "../queries/userauth.js";
-import jwt from "jsonwebtoken";
 import { ulid } from "ulid";
 import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
+import {
+  getPiuList,
+  getProjectList,
+  getRoList,
+} from "../queries/masterDataQueries.js";
 
 dotenv.config();
-
-import { insertUser, getUserFromUsername } from "../queries/userauth.js";
 
 const roList = async (req, res) => {
   const client = await pool.connect();
   const currentTimestamp = Date.now();
   const content = req.body;
   try {
-    const id = ulid();
     logger.info("enter into roList");
     logger.info(content);
 
-    await client.query("BEGIN");
+    await authvalidation(req.headers, client);
 
-    const adduser = await client.query(insertUser, [
-      id,
-      content.username,
-      hashpass,
-      content.name,
-      content.email,
-      content.phone,
-      content.role,
-      content.status,
-      currentTimestamp,
-      currentTimestamp,
-    ]);
+    logger.info("user verified");
 
-    if (adduser.rowCount > 0) {
-      logger.info("user added successfully");
-    } else {
-      throw new Error("Error occurred");
-    }
-
-    await client.query("COMMIT");
+    const getList = await client.query(getRoList);
 
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: req.body,
+      Data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -61,94 +43,28 @@ const roList = async (req, res) => {
     client.release();
   }
 };
-
 const PiuList = async (req, res) => {
   const client = await pool.connect();
+  const currentTimestamp = Date.now();
+  const content = req.body;
   try {
-    const content = req.body;
-    const username = content.username;
+    const id = ulid();
+    logger.info("enter into roList");
+    logger.info(content);
+    const ro_id = req.query.ro_id;
+    if (ro_id == null) {
+      throw new Error("ro_id is mandatory");
+    }
+    await authvalidation(req.headers, client);
 
-    let data = await client.query(getUserFromUsername, [username]);
+    logger.info("user verified");
 
-    if (data.rowCount === 0) throw new Error("Invalid Username");
-
-    data = data.rows[0];
-
-    const match = await bcrypt.compare(content.password, data.hashpass);
-    if (!match) throw new Error("Incorrect Password");
-
-    const currentTimeUTC = Date.now();
-    const expirationTimeUTC = currentTimeUTC + 7 * 24 * 60 * 60 * 1000; // 7 days
-
-    const expirationTimeEpoch = expirationTimeUTC;
-    const token = jwt.sign(
-      {
-        user_id: data.id,
-        username: data.username,
-      },
-      process.env.JWT_SECRET
-    );
-
-    const result = {
-      loggedIn: data.status,
-      user_id: data.id,
-      name: data.name,
-      token,
-      exp: expirationTimeEpoch,
-    };
+    const getList = await client.query(getPiuList, [ro_id]);
 
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      Data: result,
-    });
-  } catch (error) {
-    logger.error(error);
-    res.status(400).send({
-      status: 400,
-      msg: error.message,
-      Data: req.body,
-    });
-  } finally {
-    client.release();
-  }
-};
-
-const ProjectList = async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const auth = await authvalidation(req.headers, client);
-    const user_id = auth.user_id;
-
-    await client.query("BEGIN");
-    const content = req.body;
-    const id = req.params.id;
-    const currentTimestamp = Date.now();
-
-    const updateUser = await client.query(queriesuserauth.editUser, [
-      id,
-      content.username,
-      content.name,
-      content.email,
-      content.phone,
-      content.warehouse,
-      currentTimestamp,
-      content.status,
-    ]);
-
-    if (updateUser.rowCount > 0) {
-      logger.info("user updated Successfully");
-    } else {
-      logger.warn("user update failed");
-      throw new Error("No user updated");
-    }
-
-    await client.query("COMMIT");
-
-    res.status(200).send({
-      status: 200,
-      msg: "User Edit Successfully",
-      Data: req.body,
+      Data: getList.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -156,7 +72,38 @@ const ProjectList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: req.body,
+      Data: { user_id: id },
+    });
+  } finally {
+    client.release();
+  }
+};
+const ProjectList = async (req, res) => {
+  const client = await pool.connect();
+  const currentTimestamp = Date.now();
+  const content = req.body;
+  try {
+    logger.info("enter into project List");
+    logger.info(content);
+    const piu_id = req.query.piu_id;
+    await authvalidation(req.headers, client);
+
+    logger.info("user verified");
+
+    const getList = await client.query(getProjectList, [piu_id]);
+
+    res.status(200).send({
+      status: 200,
+      msg: "Data Returned Successfully",
+      Data: getList.rows,
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    logger.error(error);
+    res.status(400).send({
+      status: 400,
+      msg: error.message,
+      Data: { user_id: id },
     });
   } finally {
     client.release();
@@ -207,4 +154,4 @@ const getusercustomer = async (req, res) => {
   }
 };
 
-export { login, signup, editUser, getusercustomer };
+export { roList, PiuList, ProjectList };

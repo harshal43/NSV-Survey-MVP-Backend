@@ -1,10 +1,10 @@
 import { Router } from "express";
 const router = Router();
-import { signup, login, editUser } from "../controllers/userAuth.js";
+import { PiuList, ProjectList, roList } from "../controllers/masterData.js";
 
-router.get("/ro-list", signup);
-router.get("/piu-list", login);
-router.get("/project-list", login);
+router.get("/ro-list", roList);
+router.get("/piu-list", PiuList);
+router.get("/project-list", ProjectList);
 
 // router.put("/edit/:id", editUser);
     
