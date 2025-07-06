@@ -7,7 +7,7 @@ import nsvroute from "./routes/routensv.js";
 dotenv.config();
 
 const app = express();
-const port = parseInt(process.env.WMS_PORT) || 6001;
+const port = parseInt(process.env.PORT) || 6000;
 
 app.use(cors());
 app.use(express.json());

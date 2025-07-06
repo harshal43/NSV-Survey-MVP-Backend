@@ -5,6 +5,7 @@ import { ulid } from "ulid";
 import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
 import {
+  getLaneData,
   getPiuList,
   getProjectList,
   getRoList,
@@ -37,7 +38,7 @@ const roList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
@@ -72,7 +73,7 @@ const PiuList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
@@ -103,55 +104,42 @@ const ProjectList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
   }
 };
-
-const getusercustomer = async (req, res) => {
+const laneData = async (req, res) => {
   const client = await pool.connect();
+  const currentTimestamp = Date.now();
+  const content = req.body;
   try {
-    const auth = await authvalidation(req.headers, client);
-    const user_id = auth.user_id;
+    logger.info("enter into project List");
+    logger.info(content);
+    const project_id = req.query.project_id;
+    await authvalidation(req.headers, client);
 
-    let { limit, offset } = req.query;
-    offset = (offset - 1) * limit;
-    const oms_user = req.query.oms_user;
+    logger.info("user verified");
 
-    const customer_count = await client.query(
-      queriesCustomer.customerCountActive
-    );
-    const total_customer_count = customer_count.rows[0].total_customer_count;
-    const total_pages = Math.ceil(total_customer_count / limit);
-
-    const customer_list = await client.query(queriesCustomer.getusercustomer, [
-      oms_user,
-      limit,
-      offset,
-    ]);
-    const result = customer_list.rows;
+    const getList = await client.query(getLaneData, [project_id]);
 
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      data: {
-        total_pages,
-        total_customer: total_customer_count,
-        customer_list: result,
-      },
+      Data: getList.rows,
     });
   } catch (error) {
+    await client.query("ROLLBACK");
     logger.error(error);
     res.status(400).send({
       status: 400,
       msg: error.message,
-      data: req.body,
+      Data: req.body,
     });
   } finally {
     client.release();
   }
 };
 
-export { roList, PiuList, ProjectList };
+export { roList, PiuList, ProjectList,laneData };
