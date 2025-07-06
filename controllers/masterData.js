@@ -38,7 +38,7 @@ const roList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
@@ -73,7 +73,7 @@ const PiuList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
@@ -104,7 +104,7 @@ const ProjectList = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
@@ -135,7 +135,7 @@ const laneData = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();

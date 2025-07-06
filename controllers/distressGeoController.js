@@ -16,8 +16,14 @@ const getDistressData = async (req, res) => {
     logger.info(content);
 
     await authvalidation(req.headers, client);
-
     logger.info("user verified");
+
+    if (!content.latitude || !content.longitude || !content.project_id) {
+      throw new Error("Missing lat long or project not selected");
+    }
+    const project_id = content.project_id;
+    const latitude = content.latitude;
+    const longitude = content.longitude;
 
     const getList = await client.query(getDistressAndDistance, [
       project_id,
@@ -42,11 +48,11 @@ const getDistressData = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      Data: { user_id: id },
+      Data: req.body,
     });
   } finally {
     client.release();
   }
 };
 
-export { roList, PiuList, ProjectList, laneData };
+export { getDistressData };
