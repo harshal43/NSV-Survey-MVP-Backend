@@ -9,6 +9,8 @@ import masterData from "../routes/masterdata.js";
 router.use("/auth",userAuth);
 router.use("/master",masterData);
 router.use("/distresses",distreses);
+router.use("/inspections",distreses);
+
 
 
 
