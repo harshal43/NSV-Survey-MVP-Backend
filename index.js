@@ -13,6 +13,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const testing = async () => {
+  console.log("api called");
+};
+app.use(testing);
+
 app.use("/nsv", nsvroute);
 
 // 🛠 FIXED this line
