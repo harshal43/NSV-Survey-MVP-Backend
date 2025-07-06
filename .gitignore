@@ -1,0 +1,14 @@
+#queries
+/sql
+
+# node_modules
+/package-lock.json
+/node_modules
+
+# Internal use
+/codeSnippets.js
+/.sqlscripts.sql
+/.lambdatesting.js
+
+#environment variables
+/.env
