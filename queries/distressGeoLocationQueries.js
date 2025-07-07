@@ -63,7 +63,7 @@ const getDistressAndDistance = `WITH nearest_segment AS (
 SELECT 
   ds.id AS distress_segment_id,
   l.lane_code,
-  l.side
+  l.side,
   ds.start_chainage_m,
   ds.end_chainage_m,
   ds.roughness_bi,
