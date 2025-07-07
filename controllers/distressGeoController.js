@@ -36,6 +36,7 @@ const getDistressData = async (req, res) => {
         msg: "no data found for this lat long",
         data: {},
       });
+      return;
     }
     res.status(200).send({
       status: 200,
