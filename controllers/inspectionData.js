@@ -3,7 +3,10 @@ import logger from "../utils/logger.js";
 import { ulid } from "ulid";
 import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
-import { projectInspection } from "../queries/inspectionQueries.js";
+import {
+  addInspectionQuery,
+  projectInspection,
+} from "../queries/inspectionQueries.js";
 
 dotenv.config();
 
@@ -46,5 +49,47 @@ const inspectionData = async (req, res) => {
     client.release();
   }
 };
+const addInspection = async (req, res) => {
+  const client = await pool.connect();
+  const currentTimestamp = Date.now();
+  const content = req.body;
+  try {
+    logger.info("enter into inspectionDataApi");
+    logger.info(content);
+    const project_id = req.query.project_id;
+    const currentTimestamp = Date.now();
+    const auth = await authvalidation(req.headers, client);
+    const user_id = auth.user_id;
+    const id = ulid();
+    logger.info("user verified");
 
-export { inspectionData };
+    await client.query(addInspectionQuery, [
+      id,
+      project_id,
+      content.inspection_date,
+      content.remarks,
+      user_id,
+      content.duration,
+      content.video_link,
+      currentTimestamp,
+    ]);
+
+    res.status(200).send({
+      status: 200,
+      msg: "Inspection Completed Successfully",
+      data: req.body,
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    logger.error(error);
+    res.status(400).send({
+      status: 400,
+      msg: error.message,
+      data: req.body,
+    });
+  } finally {
+    client.release();
+  }
+};
+
+export { inspectionData, addInspection };
