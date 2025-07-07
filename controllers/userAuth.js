@@ -80,7 +80,7 @@ const login = async (req, res) => {
     if (!match) throw new Error("Incorrect Password");
 
     const currentTimeUTC = Date.now();
-    const expirationTimeUTC = currentTimeUTC + 7 * 24 * 60 * 60 * 1000; // 7 days
+    const expirationTimeUTC = currentTimeUTC + 20 * 24 * 60 * 60 * 1000; // 7 days
 
     const expirationTimeEpoch = expirationTimeUTC;
     const token = jwt.sign(
