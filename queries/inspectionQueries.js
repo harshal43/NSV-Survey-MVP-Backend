@@ -1,4 +1,4 @@
-const projectInspection = `SELECT id, project_id, inspection_date, remarks, inspection_by, inspection_duration,created_at
+const projectInspection = `SELECT id, project_id,video_link, inspection_date, remarks, inspection_by, inspection_duration,created_at
 	FROM public.inspection WHERE project_id = $1 ORDER BY Created_at DESC`;
 
 const addInspectionQuery = `INSERT INTO public.inspection(id,
