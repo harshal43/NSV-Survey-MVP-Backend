@@ -97,7 +97,9 @@ const login = async (req, res) => {
       name: data.name,
       token,
       exp: expirationTimeEpoch,
-      role: data.role
+      role: data.role,
+      phone: data.phone,
+      email: data.email
     };
 
     res.status(200).send({
