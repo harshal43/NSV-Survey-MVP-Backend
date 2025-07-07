@@ -27,8 +27,8 @@ const inspectionData = async (req, res) => {
         msg: "No Record Found",
         data: getList.rows,
       });
+      return;
     }
-
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
