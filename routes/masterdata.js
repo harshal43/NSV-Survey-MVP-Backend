@@ -5,7 +5,7 @@ import { laneData, PiuList, projectDeatils, ProjectList, roList } from "../contr
 router.get("/ro-list", roList);
 router.get("/piu-list", PiuList);
 router.get("/project-list", ProjectList);
-router.get("/lane_data", laneData);projectDeatils
+router.get("/lane_data", laneData);
 router.get("/project-details", projectDeatils);
 
 
