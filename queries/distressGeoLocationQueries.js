@@ -78,4 +78,7 @@ JOIN nearest_segment ns
   AND ds.end_chainage_m = ns.end_chainage_m
 WHERE l.project_id = $1;
 `;
-export { getDistress,getDistressAndDistance };
+
+const selectdistressrow = `SELECT start_chainage_m, end_chainage_m, length_m, geom_start, geom_end, roughness_bi, rut_depth_mm, crack_area_pct, ravelling_area_pct, lane_id, id, created_at, updarted_at
+	FROM public.distress_segments WHERE lane_id = $1 AND start_chainage_m = $2 AND end_chainage_m = $3;`;
+export { getDistress,getDistressAndDistance,selectdistressrow };
