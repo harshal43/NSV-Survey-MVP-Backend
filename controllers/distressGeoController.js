@@ -3,7 +3,10 @@ import logger from "../utils/logger.js";
 import { ulid } from "ulid";
 import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
-import { getDistressAndDistance } from "../queries/distressGeoLocationQueries.js";
+import {
+  getDistressAndDistance,
+  selectdistressrow,
+} from "../queries/distressGeoLocationQueries.js";
 import e from "express";
 
 dotenv.config();
@@ -70,36 +73,95 @@ const insertDistressSegment = async (req, res) => {
     // await authvalidation(req.headers, client);
     logger.info("User verified");
 
-    const { start_latitude, start_longitude,end_latitude, end_longitude, start_chainage_m, end_chainage_m } = content;
+    const {
+      start_latitude,
+      start_longitude,
+      end_latitude,
+      end_longitude,
+      start_chainage_m,
+      end_chainage_m,
+    } = content;
     logger.info(start_latitude);
-    logger.info(end_latitude)
+    logger.info(end_latitude);
     logger.info(start_longitude);
 
     logger.info(end_longitude);
     logger.info(start_chainage_m);
-    logger.info(end_chainage_m);  
+    logger.info(end_chainage_m);
 
-
-
-    if (!start_latitude || !start_longitude || !end_latitude || !end_longitude || !start_chainage_m || !end_chainage_m) {
-      throw new Error("Missing required fields: start_latitude, start_longitude, end_latitude, end_longitude, start_chainage_m, end_chainage_m");
+    if (
+      !start_latitude ||
+      !start_longitude ||
+      !end_latitude ||
+      !end_longitude ||
+      !start_chainage_m ||
+      !end_chainage_m
+    ) {
+      throw new Error(
+        "Missing required fields: start_latitude, start_longitude, end_latitude, end_longitude, start_chainage_m, end_chainage_m"
+      );
     }
 
     const id = ulid();
-    const lane_id = 'L1D1LHS';
+    const lane_id = "L1D1LHS";
     const length_m = parseFloat((end_chainage_m - start_chainage_m).toFixed(2));
+    const prev_data = await client.query(selectdistressrow, [
+      lane_id,
+      start_chainage_m,
+      end_chainage_m,
+    ]);
+    if (prev_data.rowCount > 0) {
+      const updateDistressdata = await client.query(
+        `
+        UPDATE public.distress_segments
+        SET
+          start_chainage_m = $1,
+          end_chainage_m = $2,
+          length_m = $3,
+          geom_start = ST_GeomFromText($4, 4326),
+          geom_end = ST_GeomFromText($5, 4326),
+          roughness_bi = $6,
+          rut_depth_mm = $7,
+          crack_area_pct = $8,
+          ravelling_area_pct = $9,
+          lane_id = $10,
+          updarted_at = $11
+        WHERE lane_id = $10 AND start_chainage_m = $1 AND end_chainage_m = $2
+      `,
+        [
+          start_chainage_m,
+          end_chainage_m,
+          length_m,
+          `POINT(${start_latitude} ${start_longitude})`,
+          `POINT(${end_latitude} ${end_longitude})`,
+          prev_data.rows[0].roughness_bi,
+          prev_data.rows[0].rut_depth_mm,
+          prev_data.rows[0].crack_area_pct,
+          prev_data.rows[0].ravelling_area_pct,
+          lane_id,
+          currentTimestamp, // Use the same timestamp for update
+        ]
+      );
+    } else {
+      // Generate random distress values
+      const roughness_bi = parseFloat(
+        (Math.random() * (7 - 0.5) + 0.5).toFixed(2)
+      );
+      const rut_depth_mm = parseFloat(
+        (Math.random() * (20 - 1) + 1).toFixed(2)
+      );
+      const crack_area_pct = parseFloat(
+        (Math.random() * (15 - 1) + 1).toFixed(2)
+      );
+      const ravelling_area_pct = parseFloat(
+        (Math.random() * (15 - 0.1) + 0.1).toFixed(2)
+      );
 
-    // Generate random distress values
-    const roughness_bi = parseFloat((Math.random() * (7 - 0.5) + 0.5).toFixed(2));
-    const rut_depth_mm = parseFloat((Math.random() * (20 - 1) + 1).toFixed(2));
-    const crack_area_pct = parseFloat((Math.random() * (15 - 1) + 1).toFixed(2));
-    const ravelling_area_pct = parseFloat((Math.random() * (15 - 0.1) + 0.1).toFixed(2));
+      // Construct the WKT point (geometry)
+      const geom_start = `POINT(${start_latitude} ${start_longitude})`;
+      const geom_end = `POINT(${end_latitude} ${end_longitude})`; // same for now
 
-    // Construct the WKT point (geometry)
-    const geom_start = `POINT(${start_latitude} ${start_longitude})`;
-    const geom_end = `POINT(${end_latitude} ${end_longitude})`; // same for now
-
-    const insertQuery = `
+      const insertQuery = `
       INSERT INTO public.distress_segments (
         start_chainage_m, end_chainage_m, length_m, geom_start, geom_end,
         roughness_bi, rut_depth_mm, crack_area_pct, ravelling_area_pct,
@@ -111,26 +173,26 @@ const insertDistressSegment = async (req, res) => {
       )
     `;
 
-    await client.query(insertQuery, [
-      start_chainage_m,
-      end_chainage_m,
-      length_m,
-      geom_start,
-      geom_end,
-      roughness_bi,
-      rut_depth_mm,
-      crack_area_pct,
-      ravelling_area_pct,
-      lane_id,
-      id,
-      currentTimestamp,
-      currentTimestamp
-    ]);
-
+      await client.query(insertQuery, [
+        start_chainage_m,
+        end_chainage_m,
+        length_m,
+        geom_start,
+        geom_end,
+        roughness_bi,
+        rut_depth_mm,
+        crack_area_pct,
+        ravelling_area_pct,
+        lane_id,
+        id,
+        currentTimestamp,
+        currentTimestamp,
+      ]);
+    }
     res.status(200).send({
       status: 200,
       msg: `added distress segment successfully${start_chainage_m} to ${end_chainage_m}`,
-      data: { id }
+      data: { id },
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -138,11 +200,11 @@ const insertDistressSegment = async (req, res) => {
     res.status(400).send({
       status: 400,
       msg: error.message,
-      data: req.body
+      data: req.body,
     });
   } finally {
     client.release();
   }
 };
 
-export { getDistressData,insertDistressSegment };
+export { getDistressData, insertDistressSegment };
