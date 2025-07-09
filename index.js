@@ -26,6 +26,10 @@ app.use((req, res) => {
   logger.error("Unknown URL endpoint");
   res.status(404).send("ERROR 404 Page not found");
 });
+app.use((err, req, res, next) => {
+  logger.error(err.stack || err.message);
+  res.status(500).json({ error: "Internal Server Error" });
+});
 
 app.listen(port, () => {
   logger.info({ port }, `App listening on port`);
