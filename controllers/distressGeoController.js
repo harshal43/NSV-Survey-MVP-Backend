@@ -142,6 +142,7 @@ const insertDistressSegment = async (req, res) => {
           currentTimestamp, // Use the same timestamp for update
         ]
       );
+      logger.info({count:updateDistressdata.rowCount});
     } else {
       // Generate random distress values
       const roughness_bi = parseFloat(
