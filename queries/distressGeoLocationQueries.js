@@ -81,4 +81,70 @@ WHERE l.project_id = $1;
 
 const selectdistressrow = `SELECT start_chainage_m, end_chainage_m, length_m, geom_start, geom_end, roughness_bi, rut_depth_mm, crack_area_pct, ravelling_area_pct, lane_id, id, created_at, updarted_at
 	FROM public.distress_segments WHERE lane_id = $1 AND start_chainage_m = $2 AND end_chainage_m = $3;`;
-export { getDistress,getDistressAndDistance,selectdistressrow };
+const getFullDistress = `
+  SELECT 
+  ds.id AS segment_id,
+  ds.lane_id,
+  l.lane_code,
+  l.side,
+  ds.start_chainage_m,
+  ds.end_chainage_m,
+  ds.length_m,
+  ST_Y(ds.geom_start::geometry) AS start_lat,
+  ST_X(ds.geom_start::geometry) AS start_lng,
+  ST_Y(ds.geom_end::geometry) AS end_lat,
+  ST_X(ds.geom_end::geometry) AS end_lng,
+  ds.roughness_bi,
+  ds.rut_depth_mm,
+  ds.crack_area_pct,
+  ds.ravelling_area_pct
+FROM 
+  distress_segments ds
+JOIN 
+  lanes l ON ds.lane_id = l.id
+WHERE 
+  l.project_id = $1
+ ORDER BY  lane_code, start_chainage_m`;
+
+const getFullLaneWiseDistress = `SELECT 
+  l.lane_code,
+  l.side,
+  json_agg(
+    json_build_object(
+      'segment_id', ds.id,
+      'chainage', json_build_object(
+        'start', ds.start_chainage_m,
+        'end', ds.end_chainage_m,
+        'length', ds.length_m
+      ),
+      'path', json_build_array(
+        json_build_object('start_lat', ST_Y(ds.geom_start::geometry), 'strt_lng', ST_X(ds.geom_start::geometry)),
+        json_build_object('end_lat', ST_Y(ds.geom_end::geometry), 'end_lng', ST_X(ds.geom_end::geometry))
+      ),
+      'distress', json_build_object(
+        'roughness', ds.roughness_bi,
+        'rut', ds.rut_depth_mm,
+        'crack', ds.crack_area_pct,
+        'ravelling', ds.ravelling_area_pct
+      )
+    )
+    ORDER BY ds.start_chainage_m
+  ) AS segments
+FROM 
+  distress_segments ds
+JOIN 
+  lanes l ON ds.lane_id = l.id
+WHERE 
+  l.project_id = $1
+GROUP BY 
+  l.lane_code, l.side
+ORDER BY 
+  l.lane_code;
+`;
+export {
+  getDistress,
+  getDistressAndDistance,
+  selectdistressrow,
+  getFullDistress,
+  getFullLaneWiseDistress,
+};
