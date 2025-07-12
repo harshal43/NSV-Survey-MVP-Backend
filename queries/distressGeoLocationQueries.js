@@ -81,4 +81,34 @@ WHERE l.project_id = $1;
 
 const selectdistressrow = `SELECT start_chainage_m, end_chainage_m, length_m, geom_start, geom_end, roughness_bi, rut_depth_mm, crack_area_pct, ravelling_area_pct, lane_id, id, created_at, updarted_at
 	FROM public.distress_segments WHERE lane_id = $1 AND start_chainage_m = $2 AND end_chainage_m = $3;`;
-export { getDistress,getDistressAndDistance,selectdistressrow };
+const getFullDistress = `
+  SELECT 
+  ds.id AS segment_id,
+  ds.lane_id,
+  l.lane_code,
+  l.side,
+  ds.start_chainage_m,
+  ds.end_chainage_m,
+  ds.length_m,
+  ST_Y(ds.geom_start::geometry) AS start_lat,
+  ST_X(ds.geom_start::geometry) AS start_lng,
+  ST_Y(ds.geom_end::geometry) AS end_lat,
+  ST_X(ds.geom_end::geometry) AS end_lng,
+  ds.roughness_bi,
+  ds.rut_depth_mm,
+  ds.crack_area_pct,
+  ds.ravelling_area_pct
+FROM 
+  distress_segments ds
+JOIN 
+  lanes l ON ds.lane_id = l.id
+WHERE 
+  l.project_id = $1
+ ORDER BY  lane_code, start_chainage_m`;
+
+export {
+  getDistress,
+  getDistressAndDistance,
+  selectdistressrow,
+  getFullDistress,
+};

@@ -7,7 +7,7 @@ import {
   getDistressAndDistance,
   selectdistressrow,
 } from "../queries/distressGeoLocationQueries.js";
-import e from "express";
+import { sendLiveData } from "./websocket.js";
 
 dotenv.config();
 
@@ -42,6 +42,13 @@ const getDistressData = async (req, res) => {
       });
       return;
     }
+    const event = {
+      latitude: latitude,
+      longitude: longitude,
+      project_id: project_id,
+      distress_data: getList.rows,
+    };
+    sendLiveData(event);
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
@@ -81,13 +88,13 @@ const insertDistressSegment = async (req, res) => {
       start_chainage_m,
       end_chainage_m,
     } = content;
-    logger.info(start_latitude);
-    logger.info(end_latitude);
-    logger.info(start_longitude);
+    // logger.info(start_latitude);
+    // logger.info(end_latitude);
+    // logger.info(start_longitude);
 
-    logger.info(end_longitude);
-    logger.info(start_chainage_m);
-    logger.info(end_chainage_m);
+    // logger.info(end_longitude);
+    // logger.info(start_chainage_m);
+    // logger.info(end_chainage_m);
 
     if (
       !start_latitude ||
@@ -142,7 +149,7 @@ const insertDistressSegment = async (req, res) => {
           currentTimestamp, // Use the same timestamp for update
         ]
       );
-      logger.info({count:updateDistressdata.rowCount});
+      logger.info({ count: updateDistressdata.rowCount });
     } else {
       // Generate random distress values
       const roughness_bi = parseFloat(
@@ -207,5 +214,43 @@ const insertDistressSegment = async (req, res) => {
     client.release();
   }
 };
+const getFullSegment = async (req, res) => {
+  const client = await pool.connect();
 
-export { getDistressData, insertDistressSegment };
+  try {
+    const project_id = req.query.project_id;
+    const { rows } = await pool.query(getFullDistress, [project_id]);
+    const formatted = rows.map((row) => ({
+      segment_id: row.segment_id,
+      lane_id: row.lane_id,
+      lane_code: row.lane_code,
+      side: row.side,
+      chainage: {
+        start: row.start_chainage_m,
+        end: row.end_chainage_m,
+        length: row.length_m,
+      },
+      path: [
+        { lat: row.start_lat, lng: row.start_lng },
+        { lat: row.end_lat, lng: row.end_lng },
+      ],
+      distress: {
+        roughness: row.roughness_bi,
+        rut: row.rut_depth_mm,
+        crack: row.crack_area_pct,
+        ravelling: row.ravelling_area_pct,
+      },
+    }));
+    // res.json(formatted);
+    res.status(200).send({
+      status: 200,
+      msg: "Data Returned Successfully",
+      data: formatted,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error fetching project data" });
+  }
+};
+
+export { getDistressData, insertDistressSegment, getFullSegment };
