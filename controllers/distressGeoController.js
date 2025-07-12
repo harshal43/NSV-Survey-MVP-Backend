@@ -5,6 +5,8 @@ import { authvalidation } from "../utils/auth.js";
 import dotenv from "dotenv";
 import {
   getDistressAndDistance,
+  getFullDistress,
+  getFullLaneWiseDistress,
   selectdistressrow,
 } from "../queries/distressGeoLocationQueries.js";
 import { sendLiveData } from "./websocket.js";
@@ -216,40 +218,48 @@ const insertDistressSegment = async (req, res) => {
 };
 const getFullSegment = async (req, res) => {
   const client = await pool.connect();
-
   try {
+    console.log("getFullSegment API called");
+
     const project_id = req.query.project_id;
-    const { rows } = await pool.query(getFullDistress, [project_id]);
-    const formatted = rows.map((row) => ({
-      segment_id: row.segment_id,
-      lane_id: row.lane_id,
-      lane_code: row.lane_code,
-      side: row.side,
-      chainage: {
-        start: row.start_chainage_m,
-        end: row.end_chainage_m,
-        length: row.length_m,
-      },
-      path: [
-        { lat: row.start_lat, lng: row.start_lng },
-        { lat: row.end_lat, lng: row.end_lng },
-      ],
-      distress: {
-        roughness: row.roughness_bi,
-        rut: row.rut_depth_mm,
-        crack: row.crack_area_pct,
-        ravelling: row.ravelling_area_pct,
-      },
-    }));
+    // const { rows } = await client.query(getFullDistress, [project_id]);getFullLaneWiseDistress
+    const { rows } = await client.query(getFullLaneWiseDistress, [project_id]);
+    console.log({ "getFullSegmen lane count": rows.length });
+
+    // const formatted = rows.map((row) => ({
+    //   segment_id: row.segment_id,
+    //   lane_id: row.lane_id,
+    //   lane_code: row.lane_code,
+    //   side: row.side,
+    //   chainage: {
+    //     start: row.start_chainage_m,
+    //     end: row.end_chainage_m,
+    //     length: row.length_m,
+    //   },
+    //   path: [
+    //     { lat: row.start_lat, lng: row.start_lng },
+    //     { lat: row.end_lat, lng: row.end_lng },
+    //   ],
+    //   distress: {
+    //     roughness: row.roughness_bi,
+    //     rut: row.rut_depth_mm,
+    //     crack: row.crack_area_pct,
+    //     ravelling: row.ravelling_area_pct,
+    //   },
+    // }));
     // res.json(formatted);
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      data: formatted,
+      data: rows,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error fetching project data" });
+    res.status(400).send({
+      status: 400,
+      msg: error.message,
+      data: req.body,
+    });
   }
 };
 
