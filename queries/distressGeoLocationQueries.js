@@ -143,25 +143,25 @@ ORDER BY
 `;
 
 const start_end_lat_long = `SELECT 
-  ST_Y((SELECT geom_start::geometry FROM distress_segments ds
+  ST_X((SELECT geom_start::geometry FROM distress_segments ds
         JOIN lanes l ON ds.lane_id = l.id
         WHERE l.project_id = $1
         ORDER BY ds.start_chainage_m ASC
         LIMIT 1)) AS start_lat,
 
-  ST_X((SELECT geom_start::geometry FROM distress_segments ds
+  ST_Y((SELECT geom_start::geometry FROM distress_segments ds
         JOIN lanes l ON ds.lane_id = l.id
         WHERE l.project_id = $1
         ORDER BY ds.start_chainage_m ASC
         LIMIT 1)) AS start_long,
 
-  ST_Y((SELECT geom_end::geometry FROM distress_segments ds
+  ST_X((SELECT geom_end::geometry FROM distress_segments ds
         JOIN lanes l ON ds.lane_id = l.id
         WHERE l.project_id = $1
-        ORDER BY ds.end_chainage_m DESC
+        ORDER BY ds.end_chainage_m DESC77.333146
         LIMIT 1)) AS end_lat,
 
-  ST_X((SELECT geom_end::geometry FROM distress_segments ds
+  ST_Y((SELECT geom_end::geometry FROM distress_segments ds
         JOIN lanes l ON ds.lane_id = l.id
         WHERE l.project_id = $1
         ORDER BY ds.end_chainage_m DESC
