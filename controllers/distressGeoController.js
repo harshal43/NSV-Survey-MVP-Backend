@@ -8,6 +8,7 @@ import {
   getFullDistress,
   getFullLaneWiseDistress,
   selectdistressrow,
+  start_end_lat_long,
 } from "../queries/distressGeoLocationQueries.js";
 import { sendLiveData } from "./websocket.js";
 
@@ -223,8 +224,9 @@ const getFullSegment = async (req, res) => {
 
     const project_id = req.query.project_id;
     // const { rows } = await client.query(getFullDistress, [project_id]);getFullLaneWiseDistress
-    const { rows } = await client.query(getFullLaneWiseDistress, [project_id]);
-    console.log({ "getFullSegmen lane count": rows.length });
+    // const { rows } = await client.query(getFullLaneWiseDistress, [project_id]);
+    const data = await client.query(start_end_lat_long, [project_id]);
+    console.log({ "getFullSegmen lat long": data.rows });
 
     // const formatted = rows.map((row) => ({
     //   segment_id: row.segment_id,
@@ -251,7 +253,7 @@ const getFullSegment = async (req, res) => {
     res.status(200).send({
       status: 200,
       msg: "Data Returned Successfully",
-      data: rows,
+      data: data.rows,
     });
   } catch (error) {
     console.error(error);

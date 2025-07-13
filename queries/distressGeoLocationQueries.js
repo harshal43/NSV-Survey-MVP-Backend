@@ -52,9 +52,9 @@ const getDistressAndDistance = `WITH nearest_segment AS (
   JOIN lanes l ON ds.lane_id = l.id
   WHERE l.project_id = $1
     AND (
-      ST_DWithin(ds.geom_start::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, 1500)
+      ST_DWithin(ds.geom_start::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, 1500000)
       OR
-      ST_DWithin(ds.geom_end::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, 1500)
+      ST_DWithin(ds.geom_end::geography, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, 1500000)
     )
   ORDER BY distance_meters
   LIMIT 1
@@ -141,10 +141,49 @@ GROUP BY
 ORDER BY 
   l.lane_code;
 `;
+
+const start_end_lat_long = `SELECT 
+  ST_Y((SELECT geom_start::geometry FROM distress_segments ds
+        JOIN lanes l ON ds.lane_id = l.id
+        WHERE l.project_id = $1
+        ORDER BY ds.start_chainage_m ASC
+        LIMIT 1)) AS start_lat,
+
+  ST_X((SELECT geom_start::geometry FROM distress_segments ds
+        JOIN lanes l ON ds.lane_id = l.id
+        WHERE l.project_id = $1
+        ORDER BY ds.start_chainage_m ASC
+        LIMIT 1)) AS start_long,
+
+  ST_Y((SELECT geom_end::geometry FROM distress_segments ds
+        JOIN lanes l ON ds.lane_id = l.id
+        WHERE l.project_id = $1
+        ORDER BY ds.end_chainage_m DESC
+        LIMIT 1)) AS end_lat,
+
+  ST_X((SELECT geom_end::geometry FROM distress_segments ds
+        JOIN lanes l ON ds.lane_id = l.id
+        WHERE l.project_id = $1
+        ORDER BY ds.end_chainage_m DESC
+        LIMIT 1)) AS end_long,
+
+  (SELECT start_chainage_m FROM distress_segments ds
+   JOIN lanes l ON ds.lane_id = l.id
+   WHERE l.project_id = $1
+   ORDER BY ds.start_chainage_m ASC
+   LIMIT 1) AS start_chainage_m,
+
+  (SELECT end_chainage_m FROM distress_segments ds
+   JOIN lanes l ON ds.lane_id = l.id
+   WHERE l.project_id = $1
+   ORDER BY ds.end_chainage_m DESC
+   LIMIT 1) AS end_chainage_m;
+`;
 export {
   getDistress,
   getDistressAndDistance,
   selectdistressrow,
   getFullDistress,
   getFullLaneWiseDistress,
+  start_end_lat_long
 };
