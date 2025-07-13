@@ -262,6 +262,8 @@ const getFullSegment = async (req, res) => {
       msg: error.message,
       data: req.body,
     });
+  } finally {
+    client.release();
   }
 };
 
